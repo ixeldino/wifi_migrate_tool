@@ -1,0 +1,8 @@
+# Ignore all subfolders
+*/
+
+# Ignore all XML files
+*.xml
+
+# Ignore all CMD files
+*.cmd
