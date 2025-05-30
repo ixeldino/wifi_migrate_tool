@@ -6,3 +6,6 @@
 
 # Ignore all CMD files
 *.cmd
+
+# Do not ignore wifi_export.cmd
+!wifi_export.cmd
