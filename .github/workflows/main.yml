@@ -43,12 +43,19 @@ jobs:
           }
           Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole -icon ./wifi.ico
 
+      - name: Create SHA256 for EXE
+        shell: pwsh
+        run: |
+          Get-FileHash wifi_pro.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash) *wifi_pro.exe" } | Set-Content wifi_pro.exe.sha256
+
       - name: Create or update release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.fullver }}
           name: "WiFi Exporter ${{ env.fullver }}"
-          files: wifi_pro.exe
+          files: |
+            wifi_pro.exe
+            wifi_pro.exe.sha256
           draft: false
           prerelease: false
         env:

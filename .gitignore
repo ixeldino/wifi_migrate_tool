@@ -11,4 +11,4 @@
 !wifi_export.cmd
 
 # Do not ignore GitHub workflows
-# I want to ignore it! !.github/
+!.github/
