@@ -358,15 +358,25 @@ function Show-WifiProfileSelector {
 # --- Main logic ---
 
 # --- HEADER ---
-Write-Host ('='*60) -ForegroundColor Yellow
-Write-Host 'WiFi Profile Exporter & Importer' -ForegroundColor Yellow
-Write-Host 'https://github.com/ixeldino/wifi_migrate_tool' -ForegroundColor Yellow
-Write-Host ('='*60) -ForegroundColor Yellow
-Write-Host 'Glory to UKRAINE!' -ForegroundColor Blue
-Write-Host ('='*60) -ForegroundColor Blue
+if ($PSCommandPath -like '*.ps1') {
+    Write-Host ('='*60) -ForegroundColor Yellow
+    Write-Host 'WiFi Profile Exporter & Importer' -ForegroundColor Yellow
+    Write-Host 'https://github.com/ixeldino/wifi_migrate_tool' -ForegroundColor Yellow
+    Write-Host ('='*60) -ForegroundColor Yellow
+    Write-Host 'Glory to UKRAINE!' -ForegroundColor Blue
+    Write-Host ('='*60) -ForegroundColor Blue
+}
+
+# --- Robust base folder detection for .ps1 and .exe ---
+if ($MyInvocation.MyCommand.Path) {
+    $baseFolder = Split-Path -Parent $MyInvocation.MyCommand.Path
+} elseif ($PSScriptRoot) {
+    $baseFolder = $PSScriptRoot
+} else {
+    $baseFolder = [System.AppDomain]::CurrentDomain.BaseDirectory
+}
 
 $computerName = $env:COMPUTERNAME
-$baseFolder = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 $profiles = Get-WifiProfiles
 
