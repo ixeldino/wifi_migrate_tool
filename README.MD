@@ -205,6 +205,16 @@ powershell -executionpolicy bypass -nologo -file %~dp0\wifi_pro.ps1 -Filter Home
 
 ---
 
+## Готовий EXE-файл
+
+У [релізах GitHub](https://github.com/ixeldino/wifi_migrate_tool/releases) можна завантажити вже скомпільований виконуваний файл (`wifi_pro.exe`).
+
+- **EXE-версія** не потребує встановленого PowerShell чи додаткових модулів.
+- Працює аналогічно скрипту: підтримує всі параметри, GUI/NoGui, автоматично відкриває папку з профілями після експорту.
+- Просто завантажте `wifi_pro.exe`, запустіть від імені адміністратора та користуйтеся!
+
+---
+
 # English version
 
 ## WiFi Profile Export & Import Utility
@@ -374,6 +384,16 @@ netsh wlan add profile filename="path_to_file.xml" user=all
 - Profiles are not overwritten: if names match, an index is added.
 - All exported profiles are embedded in the import script, so you do not need separate XML files for import.
 - Admin rights are required for import.
+
+---
+
+## Готовий EXE-файл
+
+У [релізах GitHub](https://github.com/ixeldino/wifi_migrate_tool/releases) можна завантажити вже скомпільований виконуваний файл (`wifi_pro.exe`).
+
+- **EXE-версія** не потребує встановленого PowerShell чи додаткових модулів.
+- Працює аналогічно скрипту: підтримує всі параметри, GUI/NoGui, автоматично відкриває папку з профілями після експорту.
+- Просто завантажте `wifi_pro.exe`, запустіть від імені адміністратора та користуйтеся!
 
 ---
 
