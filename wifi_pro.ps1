@@ -367,7 +367,8 @@ function Show-WifiProfileSelector {
 # --- Main logic ---
 
 # --- Detect if running as EXE or PS1 ---
-$thisExe = ($PSCommandPath -and $PSCommandPath -like '*.exe')
+# Use a more robust check for EXE context (ps2exe sets $env:PS2EXE = 'true')
+$thisExe = ($PSCommandPath -and $PSCommandPath -like '*.exe') -or $env:PS2EXE -eq 'true'
 
 # --- HEADER ---
 if (-not $thisExe) {
