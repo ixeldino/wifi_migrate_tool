@@ -9,3 +9,6 @@
 
 # Do not ignore wifi_export.cmd
 !wifi_export.cmd
+
+# Do not ignore GitHub workflows
+!.github/
