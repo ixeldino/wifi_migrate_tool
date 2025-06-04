@@ -357,6 +357,14 @@ function Show-WifiProfileSelector {
 
 # --- Main logic ---
 
+# --- HEADER ---
+Write-Host ('='*60) -ForegroundColor Yellow
+Write-Host 'WiFi Profile Exporter & Importer' -ForegroundColor Yellow
+Write-Host 'https://github.com/ixeldino/wifi_migrate_tool' -ForegroundColor Yellow
+Write-Host ('='*60) -ForegroundColor Yellow
+Write-Host 'Glory to UKRAINE!' -ForegroundColor Blue
+Write-Host ('='*60) -ForegroundColor Blue
+
 $computerName = $env:COMPUTERNAME
 $baseFolder = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
