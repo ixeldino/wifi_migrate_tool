@@ -6,6 +6,10 @@
 
 # Ignore all CMD files
 *.cmd
+*.bat
+
+# Ignore EXE
+*.exe
 
 # Do not ignore wifi_export.cmd
 !wifi_export.cmd
