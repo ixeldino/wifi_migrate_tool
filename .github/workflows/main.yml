@@ -24,14 +24,14 @@ jobs:
           echo "fullver=$fullver" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "tag=$fullver" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Download PS2EXE
+      - name: Install PS2EXE as dotnet tool
         run: |
-          Invoke-WebRequest -Uri "https://github.com/MScholtes/PS2EXE/releases/download/v1.0.15/ps2exe.zip" -OutFile ps2exe.zip
-          Expand-Archive ps2exe.zip -DestinationPath ps2exe
+          dotnet tool install --global PowerShellProTools.PS2EXE
+          echo "C:\\Users\\runneradmin\\.dotnet\\tools" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Build EXE
         run: |
-          pwsh -c "Import-Module ./ps2exe/ps2exe.psd1; Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole"
+          ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole
 
       - name: Create or update release
         uses: softprops/action-gh-release@v2
