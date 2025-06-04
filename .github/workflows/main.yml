@@ -1,0 +1,71 @@
+name: Build and Release EXE
+
+on:
+  push:
+    paths:
+      - 'wifi_pro.ps1'
+      - 'version.txt'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version and build number
+        id: version
+        shell: pwsh
+        run: |
+          $version = Get-Content version.txt -Raw
+          $date = Get-Date -Format "yyMMdd"
+          $fullver = "$version.$date"
+          echo "version=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "build=$date" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "fullver=$fullver" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "tag=$fullver" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Download PS2EXE
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/MScholtes/PS2EXE/releases/download/v1.0.15/ps2exe.zip" -OutFile ps2exe.zip
+          Expand-Archive ps2exe.zip -DestinationPath ps2exe
+
+      - name: Build EXE
+        run: |
+          pwsh -c "Import-Module ./ps2exe/ps2exe.psd1; Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole"
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.fullver }}
+          name: "WiFi Exporter ${{ env.fullver }}"
+          files: wifi_pro.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up old releases (if version.txt changed)
+        if: contains(github.event.head_commit.message, 'version')
+        shell: pwsh
+        run: |
+          $releases = gh release list --limit 100 --json tagName,createdAt | ConvertFrom-Json
+          $mainver = "${{ env.version }}"
+          $toDelete = $releases | Where-Object { $_.tagName -like "$mainver.*" } | Sort-Object createdAt -Descending | Select-Object -Skip 1
+          foreach ($rel in $toDelete) {
+            gh release delete $rel.tagName -y
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Keep only 5 last builds for current version
+        if: "!contains(github.event.head_commit.message, 'version')"
+        shell: pwsh
+        run: |
+          $releases = gh release list --limit 100 --json tagName,createdAt | ConvertFrom-Json
+          $mainver = "${{ env.version }}"
+          $toDelete = $releases | Where-Object { $_.tagName -like "$mainver.*" } | Sort-Object createdAt -Descending | Select-Object -Skip 5
+          foreach ($rel in $toDelete) {
+            gh release delete $rel.tagName -y
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
