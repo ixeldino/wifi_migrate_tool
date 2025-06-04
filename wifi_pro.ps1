@@ -52,15 +52,19 @@ exit /b 1
 
 function Write-ScriptNotify {
     param(
-        [Parameter(Mandatory=$true)][string]$Message,
+        [Parameter(Mandatory = $true)][string]$Message,
         [ConsoleColor]$Color = [ConsoleColor]::White,
         [int]$Timeout,
         [switch]$Exit
     )
+    # Robust EXE detection: check $env:PS2EXE, $PSCommandPath, and $MyInvocation.MyCommand.Path
+    $isExe = $false
+    if ($env:PS2EXE -eq 'true') { $isExe = $true }
+    elseif ($PSCommandPath -and $PSCommandPath -like '*.exe') { $isExe = $true }
+    elseif ($MyInvocation.MyCommand.Path -and $MyInvocation.MyCommand.Path -like '*.exe') { $isExe = $true }
+
     Write-Host $Message -ForegroundColor $Color
-    # Detect if running as EXE
-    $thisExe = ($PSCommandPath -and $PSCommandPath -like '*.exe')
-    if (-not $thisExe -and $Timeout -and $Timeout -gt 0) {
+    if (-not $isExe -and $Timeout -and $Timeout -gt 0) {
         $remaining = [int]$Timeout
         Write-Host "Press any key to close or wait $Timeout seconds..." -NoNewline
         $sw = [Diagnostics.Stopwatch]::StartNew()
@@ -95,7 +99,7 @@ function Get-ProfileFolder {
 
 function Get-WifiProfiles {
     netsh wlan show profiles | Where-Object { $_ -match "All User Profile" } |
-        ForEach-Object { ($_ -split ":")[1].Trim() }
+    ForEach-Object { ($_ -split ":")[1].Trim() }
 }
 
 function Export-WifiProfile {
@@ -179,7 +183,7 @@ function Build-CmdScript {
 #>
 function Show-WifiProfileSelector {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string[]]$Profiles,
         [Parameter()]
         [Alias('f')]
@@ -198,20 +202,24 @@ function Show-WifiProfileSelector {
         if ($Filter -is [string]) {
             $filteredProfiles = $Profiles | Where-Object { $_ -like "*$Filter*" }
             $preSelected = $filteredProfiles
-        } elseif ($Filter -is [System.Collections.IEnumerable]) {
+        }
+        elseif ($Filter -is [System.Collections.IEnumerable]) {
             $filteredProfiles = $Profiles | Where-Object { $Filter -contains $_ }
             $preSelected = $filteredProfiles
         }
-    } elseif ($All) {
+    }
+    elseif ($All) {
         $preSelected = $Profiles
     }
 
     if ($NoGui) {
         if ($All) {
             return $Profiles
-        } elseif ($Filter) {
+        }
+        elseif ($Filter) {
             return $filteredProfiles
-        } else {
+        }
+        else {
             return @()
         }
     }
@@ -221,7 +229,7 @@ function Show-WifiProfileSelector {
 
     $form = New-Object Windows.Forms.Form
     $form.Text = "Select Wi-Fi profiles to export"
-    $form.Size = New-Object Drawing.Size(440,520)
+    $form.Size = New-Object Drawing.Size(440, 520)
     $form.StartPosition = "CenterScreen"
     $form.BackColor = [System.Drawing.Color]::White
     $form.FormBorderStyle = 'FixedDialog'
@@ -239,7 +247,7 @@ function Show-WifiProfileSelector {
     $label.Text = "Select one or more Wi-Fi profiles:"
     $label.Font = New-Object Drawing.Font("Segoe UI", 11, [Drawing.FontStyle]::Bold)
     $label.AutoSize = $true
-    $label.Location = New-Object Drawing.Point(10,10)
+    $label.Location = New-Object Drawing.Point(10, 10)
     $form.Controls.Add($label)
 
     # Filter TextBox
@@ -260,8 +268,8 @@ function Show-WifiProfileSelector {
     # CheckedListBox
     $listBox = New-Object Windows.Forms.CheckedListBox
     $listBox.Font = New-Object Drawing.Font("Segoe UI", 10)
-    $listBox.Location = New-Object Drawing.Point(10,75)
-    $listBox.Size = New-Object Drawing.Size(400,340)
+    $listBox.Location = New-Object Drawing.Point(10, 75)
+    $listBox.Size = New-Object Drawing.Size(400, 340)
     $listBox.BackColor = [System.Drawing.Color]::WhiteSmoke
     $form.Controls.Add($listBox)
 
@@ -271,7 +279,8 @@ function Show-WifiProfileSelector {
         $listBox.Items.Clear()
         if ([string]::IsNullOrWhiteSpace($filterText)) {
             $visibleProfiles = $filteredProfiles
-        } else {
+        }
+        else {
             $visibleProfiles = $filteredProfiles | Where-Object { $_ -like "*$filterText*" }
         }
         foreach ($item in $visibleProfiles) {
@@ -290,64 +299,65 @@ function Show-WifiProfileSelector {
 
     # Filter on text change
     $filterBox.Add_TextChanged({
-        Update-ListBox -filterText $filterBox.Text
-        # Reset select all toggle state
-        $selectAllButton.Tag = $false
-        $selectAllButton.Text = "Select All"
-    })
+            Update-ListBox -filterText $filterBox.Text
+            # Reset select all toggle state
+            $selectAllButton.Tag = $false
+            $selectAllButton.Text = "Select All"
+        })
 
     # Clear filter button logic
     $clearFilterButton.Add_Click({
-        $filterBox.Text = ""
-        $filterBox.Focus()
-    })
+            $filterBox.Text = ""
+            $filterBox.Focus()
+        })
 
     # Select All/Unselect All button
     $selectAllButton = New-Object Windows.Forms.Button
     $selectAllButton.Text = "Select All"
-    $selectAllButton.Size = New-Object Drawing.Size(100,30)
-    $selectAllButton.Location = New-Object Drawing.Point(10,430)
+    $selectAllButton.Size = New-Object Drawing.Size(100, 30)
+    $selectAllButton.Location = New-Object Drawing.Point(10, 430)
     $selectAllButton.Tag = $false # false = not all selected
 
     $selectAllButton.Add_Click({
-        $allSelected = $selectAllButton.Tag
-        for ($i = 0; $i -lt $listBox.Items.Count; $i++) {
-            $listBox.SetItemChecked($i, -not $allSelected)
-        }
-        $selectAllButton.Tag = -not $allSelected
-        if ($selectAllButton.Tag) {
-            $selectAllButton.Text = "Unselect All"
-        } else {
-            $selectAllButton.Text = "Select All"
-        }
-    })
+            $allSelected = $selectAllButton.Tag
+            for ($i = 0; $i -lt $listBox.Items.Count; $i++) {
+                $listBox.SetItemChecked($i, -not $allSelected)
+            }
+            $selectAllButton.Tag = -not $allSelected
+            if ($selectAllButton.Tag) {
+                $selectAllButton.Text = "Unselect All"
+            }
+            else {
+                $selectAllButton.Text = "Select All"
+            }
+        })
     $form.Controls.Add($selectAllButton)
 
     # Clear selection button
     $clearButton = New-Object Windows.Forms.Button
     $clearButton.Text = "Clear"
-    $clearButton.Size = New-Object Drawing.Size(100,30)
-    $clearButton.Location = New-Object Drawing.Point(120,430)
+    $clearButton.Size = New-Object Drawing.Size(100, 30)
+    $clearButton.Location = New-Object Drawing.Point(120, 430)
     $clearButton.Add_Click({
-        for ($i = 0; $i -lt $listBox.Items.Count; $i++) {
-            $listBox.SetItemChecked($i, $false)
-        }
-        $selectAllButton.Tag = $false
-        $selectAllButton.Text = "Select All"
-    })
+            for ($i = 0; $i -lt $listBox.Items.Count; $i++) {
+                $listBox.SetItemChecked($i, $false)
+            }
+            $selectAllButton.Tag = $false
+            $selectAllButton.Text = "Select All"
+        })
     $form.Controls.Add($clearButton)
 
     $okButton = New-Object Windows.Forms.Button
     $okButton.Text = "OK"
-    $okButton.Size = New-Object Drawing.Size(100,30)
-    $okButton.Location = New-Object Drawing.Point(230,430)
+    $okButton.Size = New-Object Drawing.Size(100, 30)
+    $okButton.Location = New-Object Drawing.Point(230, 430)
     $okButton.Add_Click({ $form.Tag = 'OK'; $form.Close() })
     $form.Controls.Add($okButton)
 
     $cancelButton = New-Object Windows.Forms.Button
     $cancelButton.Text = "Cancel"
-    $cancelButton.Size = New-Object Drawing.Size(100,30)
-    $cancelButton.Location = New-Object Drawing.Point(340,430)
+    $cancelButton.Size = New-Object Drawing.Size(100, 30)
+    $cancelButton.Location = New-Object Drawing.Point(340, 430)
     $cancelButton.Add_Click({ $form.Tag = 'Cancel'; $form.Close() })
     $form.Controls.Add($cancelButton)
 
@@ -367,25 +377,30 @@ function Show-WifiProfileSelector {
 # --- Main logic ---
 
 # --- Detect if running as EXE or PS1 ---
-# Use a more robust check for EXE context (ps2exe sets $env:PS2EXE = 'true')
-$thisExe = ($PSCommandPath -and $PSCommandPath -like '*.exe') -or $env:PS2EXE -eq 'true'
+# Robust EXE detection: check $env:PS2EXE, $PSCommandPath, and $MyInvocation.MyCommand.Path
+$isExe = $false
+if ($env:PS2EXE -eq 'true') { $isExe = $true }
+elseif ($PSCommandPath -and $PSCommandPath -like '*.exe') { $isExe = $true }
+elseif ($MyInvocation.MyCommand.Path -and $MyInvocation.MyCommand.Path -like '*.exe') { $isExe = $true }
 
 # --- HEADER ---
 if (-not $thisExe) {
-    Write-Host ('='*60) -ForegroundColor Yellow
+    Write-Host ('=' * 60) -ForegroundColor Yellow
     Write-Host 'WiFi Profile Exporter & Importer' -ForegroundColor Yellow
     Write-Host 'https://github.com/ixeldino/wifi_migrate_tool' -ForegroundColor Yellow
-    Write-Host ('='*60) -ForegroundColor Yellow
+    Write-Host ('=' * 60) -ForegroundColor Yellow
     Write-Host 'Glory to UKRAINE!' -ForegroundColor Blue
-    Write-Host ('='*60) -ForegroundColor Blue
+    Write-Host ('=' * 60) -ForegroundColor Blue
 }
 
 # --- Robust base folder detection for .ps1 and .exe ---
 if ($MyInvocation.MyCommand.Path) {
     $baseFolder = Split-Path -Parent $MyInvocation.MyCommand.Path
-} elseif ($PSScriptRoot) {
+}
+elseif ($PSScriptRoot) {
     $baseFolder = $PSScriptRoot
-} else {
+}
+else {
     $baseFolder = [System.AppDomain]::CurrentDomain.BaseDirectory
 }
 
@@ -401,8 +416,8 @@ if (-not $profiles) {
 $selectorParams = @{
     Profiles = $profiles
 }
-if ($All)    { $selectorParams.All = $true }
-if ($NoGui)  { $selectorParams.NoGui = $true }
+if ($All) { $selectorParams.All = $true }
+if ($NoGui) { $selectorParams.NoGui = $true }
 if ($Filter) { $selectorParams.Filter = $Filter }
 
 $selectedProfiles = Show-WifiProfileSelector @selectorParams
@@ -433,9 +448,11 @@ if ($selectedProfiles.Count -gt 0) {
     if ($thisExe) {
         Write-Host "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -ForegroundColor Green
         Start-Process explorer.exe $profileFolder
-    } else {
+    }
+    else {
         Write-ScriptNotify -Message "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -Color Green -Timeout 60
     }
-} else {
+}
+else {
     Write-ScriptNotify -Message "No profiles selected for export." -Color Yellow -Timeout 60 -Exit
 }
