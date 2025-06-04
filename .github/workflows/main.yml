@@ -33,7 +33,15 @@ jobs:
         shell: pwsh
         run: |
           Import-Module ps2exe
-          Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole
+          # Convert PNG to ICO if needed
+          if (!(Test-Path ./wifi.ico) -and (Test-Path ./icon.png)) {
+            Add-Type -AssemblyName System.Drawing
+            $png = [System.Drawing.Image]::FromFile('./icon.png')
+            $iconStream = New-Object System.IO.FileStream('./wifi.ico', [System.IO.FileMode]::Create)
+            $png.Save($iconStream, [System.Drawing.Imaging.ImageFormat]::Icon)
+            $iconStream.Close()
+          }
+          Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole -icon ./wifi.ico
 
       - name: Create or update release
         uses: softprops/action-gh-release@v2
