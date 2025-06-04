@@ -59,10 +59,14 @@ function Write-ScriptNotify {
     )
     Write-Host $Message -ForegroundColor $Color
     if ($Timeout -and $Timeout -gt 0) {
-        for ($i = $Timeout; $i -gt 0; $i--) {
-            Write-Host ("Closing in $i second(s)...") -ForegroundColor DarkGray -NoNewline
-            Start-Sleep -Seconds 1
-            Write-Host "`r" -NoNewline
+        Write-Host "Press any key to close or wait $Timeout seconds..."
+        $sw = [Diagnostics.Stopwatch]::StartNew()
+        while ($sw.Elapsed.TotalSeconds -lt $Timeout) {
+            if ([Console]::KeyAvailable) {
+                [void][Console]::ReadKey($true)
+                break
+            }
+            Start-Sleep -Milliseconds 200
         }
         Write-Host ""
     }
@@ -355,7 +359,6 @@ function Show-WifiProfileSelector {
 
 $computerName = $env:COMPUTERNAME
 $baseFolder = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$profileFolder = Get-ProfileFolder -BaseFolder $baseFolder -ComputerName $computerName
 
 $profiles = Get-WifiProfiles
 
@@ -377,14 +380,26 @@ if (-not $selectedProfiles) {
     Write-ScriptNotify -Message "Selection cancelled." -Color Yellow -Timeout 60 -Exit
 }
 
-foreach ($profile in $selectedProfiles) {
-    Export-WifiProfile -ProfileName $profile -ProfileFolder $profileFolder
+# Створюємо папку лише якщо є профілі для експорту
+$profileFolder = $null
+if ($selectedProfiles.Count -gt 0) {
+    $profileFolder = Get-ProfileFolder -BaseFolder $baseFolder -ComputerName $computerName
+
+    foreach ($profile in $selectedProfiles) {
+        Export-WifiProfile -ProfileName $profile -ProfileFolder $profileFolder
+    }
+
+    $profileFiles = Get-ChildItem -Path $profileFolder -Filter *.xml
+    if ($profileFiles.Count -eq 0) {
+        Write-ScriptNotify -Message "No profiles were exported." -Color Yellow -Timeout 60 -Exit
+    }
+
+    $cmdScript = Build-CmdScript -ProfileFiles $profileFiles
+
+    $cmdPath = Join-Path $profileFolder "wifi_import_$computerName.cmd"
+    Set-Content -Path $cmdPath -Value $cmdScript -Encoding ASCII
+
+    Write-ScriptNotify -Message "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -Color Green -Timeout 60
+} else {
+    Write-ScriptNotify -Message "No profiles selected for export." -Color Yellow -Timeout 60 -Exit
 }
-
-$profileFiles = Get-ChildItem -Path $profileFolder -Filter *.xml
-$cmdScript = Build-CmdScript -ProfileFiles $profileFiles
-
-$cmdPath = Join-Path $profileFolder "wifi_import_$computerName.cmd"
-Set-Content -Path $cmdPath -Value $cmdScript -Encoding ASCII
-
-Write-ScriptNotify -Message "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -Color Green -Timeout 60
