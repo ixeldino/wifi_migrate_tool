@@ -58,13 +58,22 @@ function Write-ScriptNotify {
         [switch]$Exit
     )
     Write-Host $Message -ForegroundColor $Color
-    if ($Timeout -and $Timeout -gt 0) {
-        Write-Host "Press any key to close or wait $Timeout seconds..."
+    # Detect if running as EXE
+    $thisExe = ($PSCommandPath -and $PSCommandPath -like '*.exe')
+    if (-not $thisExe -and $Timeout -and $Timeout -gt 0) {
+        $remaining = [int]$Timeout
+        Write-Host "Press any key to close or wait $Timeout seconds..." -NoNewline
         $sw = [Diagnostics.Stopwatch]::StartNew()
         while ($sw.Elapsed.TotalSeconds -lt $Timeout) {
             if ([Console]::KeyAvailable) {
                 [void][Console]::ReadKey($true)
                 break
+            }
+            $elapsed = [int]$sw.Elapsed.TotalSeconds
+            $newRemaining = $Timeout - $elapsed
+            if ($newRemaining -ne $remaining) {
+                $remaining = $newRemaining
+                Write-Host ("\rPress any key to close or wait {0} seconds..." -f $remaining) -NoNewline
             }
             Start-Sleep -Milliseconds 200
         }
@@ -357,8 +366,11 @@ function Show-WifiProfileSelector {
 
 # --- Main logic ---
 
+# --- Detect if running as EXE or PS1 ---
+$thisExe = ($PSCommandPath -and $PSCommandPath -like '*.exe')
+
 # --- HEADER ---
-if ($PSCommandPath -like '*.ps1') {
+if (-not $thisExe) {
     Write-Host ('='*60) -ForegroundColor Yellow
     Write-Host 'WiFi Profile Exporter & Importer' -ForegroundColor Yellow
     Write-Host 'https://github.com/ixeldino/wifi_migrate_tool' -ForegroundColor Yellow
@@ -417,7 +429,12 @@ if ($selectedProfiles.Count -gt 0) {
     $cmdPath = Join-Path $profileFolder "wifi_import_$computerName.cmd"
     Set-Content -Path $cmdPath -Value $cmdScript -Encoding ASCII
 
-    Write-ScriptNotify -Message "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -Color Green -Timeout 60
+    if ($thisExe) {
+        Write-Host "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -ForegroundColor Green
+        Start-Process explorer.exe $profileFolder
+    } else {
+        Write-ScriptNotify -Message "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -Color Green -Timeout 60
+    }
 } else {
     Write-ScriptNotify -Message "No profiles selected for export." -Color Yellow -Timeout 60 -Exit
 }
