@@ -58,10 +58,18 @@ function Write-ScriptNotify {
         [switch]$Exit
     )
     # Robust EXE detection: check $env:PS2EXE, $PSCommandPath, and $MyInvocation.MyCommand.Path
+    # Use [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName as the ultimate fallback
     $isExe = $false
     if ($env:PS2EXE -eq 'true') { $isExe = $true }
     elseif ($PSCommandPath -and $PSCommandPath -like '*.exe') { $isExe = $true }
     elseif ($MyInvocation.MyCommand.Path -and $MyInvocation.MyCommand.Path -like '*.exe') { $isExe = $true }
+    else {
+        try {
+            $procPath = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+            if ($procPath -and $procPath.ToLower().EndsWith('.exe')) { $isExe = $true }
+        }
+        catch {}
+    }
 
     Write-Host $Message -ForegroundColor $Color
     if (-not $isExe -and $Timeout -and $Timeout -gt 0) {
@@ -386,7 +394,8 @@ else {
     try {
         $procPath = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
         if ($procPath -and $procPath.ToLower().EndsWith('.exe')) { $isExe = $true }
-    } catch {}
+    }
+    catch {}
 }
 
 # --- HEADER ---
@@ -451,7 +460,7 @@ if ($selectedProfiles.Count -gt 0) {
     $cmdPath = Join-Path $profileFolder "wifi_import_$computerName.cmd"
     Set-Content -Path $cmdPath -Value $cmdScript -Encoding ASCII
 
-    if ($thisExe) {
+    if ($isExe) {
         Write-Host "Done. Run the generated file to import profiles:`r`n$cmdPath`r`n" -ForegroundColor Green
         Start-Process explorer.exe $profileFolder
     }
