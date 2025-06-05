@@ -1,6 +1,3 @@
-# Ignore all subfolders
-*/
-
 # Ignore all XML files
 *.xml
 
@@ -16,4 +13,9 @@
 
 # Do not ignore GitHub workflows
 !.github/
-!.github/workflows/main.yml
+!.github/*
+!.github/workflows/
+!.github/workflows/*
+
+# Ignore all subfolders except dotfolders (like .github)
+[0-9A-Za-z]*/

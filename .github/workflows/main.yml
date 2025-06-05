@@ -29,18 +29,6 @@ jobs:
         run: |
           Install-Module -Name ps2exe -Force -Scope CurrentUser
 
-      - name: Download ImageMagick portable
-        shell: pwsh
-        run: |
-          $imagemagickUri = 'https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-47-portable-Q16-x64.zip'
-          Invoke-WebRequest -Uri $imagemagickUri -OutFile 'imagemagick.zip'
-          Expand-Archive imagemagick.zip -DestinationPath imagemagick
-
-      - name: Convert PNG to ICO
-        shell: pwsh
-        run: |
-          ./imagemagick/magick.exe convert icon.png -define icon:auto-resize=256,128,64,48,32,16 wifi.ico
-
       - name: Build EXE
         shell: pwsh
         run: |

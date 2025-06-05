@@ -1,0 +1,31 @@
+name: Convert and Commit ICO
+
+on:
+  push:
+    paths:
+      - 'icon.png'
+
+jobs:
+  convert-ico:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install png-to-ico
+        run: npm install -g png-to-ico
+
+      - name: Convert PNG to ICO
+        run: png-to-ico icon.png > wifi.ico
+
+      - name: Commit and push wifi.ico
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add wifi.ico
+          git commit -m "Auto: update wifi.ico from icon.png [ci skip]" || echo "No changes to commit"
+          git push
