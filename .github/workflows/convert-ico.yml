@@ -15,9 +15,21 @@ jobs:
         shell: pwsh
         run: choco install imagemagick -y
 
-      - name: Convert PNG to ICO
+      - name: Generate BMPs for ICO
         shell: pwsh
-        run: magick convert icon.png -define icon:auto-resize=256,128,64,48,32,16 wifi.ico
+        run: |
+          magick icon.png -resize 16x16! -background none -alpha remove -colors 256 icon-16.bmp
+          magick icon.png -resize 32x32! -background none -alpha remove -colors 256 icon-32.bmp
+          magick icon.png -resize 48x48! -background none -alpha remove -colors 256 icon-48.bmp
+          magick icon.png -resize 64x64! -background none -alpha remove -colors 256 icon-64.bmp
+          magick icon.png -resize 128x128! -background none -alpha remove -colors 256 icon-128.bmp
+          magick icon.png -resize 256x256! -background none icon-256.png
+
+      - name: Convert BMPs and PNG to ICO (Win32 compatible)
+        shell: pwsh
+        run: |
+          magick icon-16.bmp icon-32.bmp icon-48.bmp icon-64.bmp icon-128.bmp icon-256.png wifi.ico
+          magick identify wifi.ico
 
       - name: Commit and push wifi.ico
         run: |
