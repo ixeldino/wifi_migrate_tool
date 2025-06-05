@@ -400,11 +400,9 @@ else {
 
 # --- HEADER ---
 if (-not $isExe) {
-    
     Write-Host 'WiFi Profile Exporter & Importer' -ForegroundColor Yellow
     Write-Host 'https://github.com/ixeldino/wifi_migrate_tool' -ForegroundColor Yellow
     Write-Host 'Glory to UKRAINE!' -ForegroundColor Blue
-
 }
 
 # --- Robust base folder detection for .ps1 and .exe ---
