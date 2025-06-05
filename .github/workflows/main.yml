@@ -32,7 +32,8 @@ jobs:
       - name: Download ImageMagick portable
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-32-portable-Q16-x64.zip" -OutFile "imagemagick.zip"
+          $imagemagickUri = 'https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-47-portable-Q16-x64.zip'
+          Invoke-WebRequest -Uri $imagemagickUri -OutFile 'imagemagick.zip'
           Expand-Archive imagemagick.zip -DestinationPath imagemagick
 
       - name: Convert PNG to ICO
