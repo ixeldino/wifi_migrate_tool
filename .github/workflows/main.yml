@@ -29,18 +29,21 @@ jobs:
         run: |
           Install-Module -Name ps2exe -Force -Scope CurrentUser
 
+      - name: Download ImageMagick portable
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-32-portable-Q16-x64.zip" -OutFile "imagemagick.zip"
+          Expand-Archive imagemagick.zip -DestinationPath imagemagick
+
+      - name: Convert PNG to ICO
+        shell: pwsh
+        run: |
+          ./imagemagick/magick.exe convert icon.png -define icon:auto-resize=256,128,64,48,32,16 wifi.ico
+
       - name: Build EXE
         shell: pwsh
         run: |
           Import-Module ps2exe
-          # Convert PNG to ICO if needed
-          if (!(Test-Path ./wifi.ico) -and (Test-Path ./icon.png)) {
-            Add-Type -AssemblyName System.Drawing
-            $png = [System.Drawing.Image]::FromFile('./icon.png')
-            $iconStream = New-Object System.IO.FileStream('./wifi.ico', [System.IO.FileMode]::Create)
-            $png.Save($iconStream, [System.Drawing.Imaging.ImageFormat]::Icon)
-            $iconStream.Close()
-          }
           Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole -icon ./wifi.ico
 
       - name: Create SHA256 for EXE
