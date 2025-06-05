@@ -11,16 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install png-to-ico
-        run: npm install -g png-to-ico
+      - name: Install ImageMagick
+        shell: pwsh
+        run: choco install imagemagick -y
 
       - name: Convert PNG to ICO
-        run: png-to-ico icon.png > wifi.ico
+        shell: pwsh
+        run: magick convert icon.png -define icon:auto-resize=256,128,64,48,32,16 wifi.ico
 
       - name: Commit and push wifi.ico
         run: |
