@@ -10,7 +10,8 @@
 
 # Do not ignore wifi_export.cmd
 !wifi_export.cmd
-
+# Ignore hybrid script with .cmd extension
+!GetToolExe.cmd
 # Do not ignore GitHub workflows
 !.github/
 !.github/*
@@ -19,3 +20,5 @@
 
 # Ignore all subfolders except dotfolders (like .github)
 [0-9A-Za-z]*/
+
+
