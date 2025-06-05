@@ -29,11 +29,23 @@ jobs:
         run: |
           Install-Module -Name ps2exe -Force -Scope CurrentUser
 
-      - name: Build EXE
+      - name: Build EXE (verbose)
         shell: pwsh
         run: |
           Import-Module ps2exe
-          Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole -icon ./wifi.ico
+          Write-Host "Current directory: $(Get-Location)"
+          Write-Host "Listing files in workspace root:"
+          Get-ChildItem -Path .
+          Write-Host "Listing files in .github/workflows:"
+          Get-ChildItem -Path .github/workflows
+          Write-Host "Checking wifi.ico existence and info:"
+          if (Test-Path ./wifi.ico) {
+            Write-Host "wifi.ico exists. File info:"; Get-Item ./wifi.ico | Format-List *
+          } else {
+            Write-Host "wifi.ico NOT FOUND!"
+          }
+          Write-Host "Running Invoke-ps2exe with -verbose..."
+          Invoke-ps2exe ./wifi_pro.ps1 ./wifi_pro.exe -noConsole -icon ./wifi.ico -verbose
 
       - name: Create SHA256 for EXE
         shell: pwsh
