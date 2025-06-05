@@ -16,3 +16,4 @@
 
 # Do not ignore GitHub workflows
 !.github/
+!.github/workflows/main.yml
